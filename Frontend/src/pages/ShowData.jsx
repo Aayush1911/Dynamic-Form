@@ -10,8 +10,6 @@ import autoTable from "jspdf-autotable";
 
 export default function ShowData() {
   const { formId, formname } = useParams();
-
-
   const navigate=useNavigate()
   const {id}=useParams()
   const [data, setData] = useState([]);
@@ -234,7 +232,7 @@ export default function ShowData() {
           </Table>
         </TableContainer>
       )}
-  <Button variant="contained" color="error" className="my-4" onClick={()=> deleteSchema(id)}>
+  <Button variant="contained" color="error" className="my-4" onClick={()=> deleteSchema(formId)}>
           Delete Form
         </Button>
       <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleCloseSnackbar}>

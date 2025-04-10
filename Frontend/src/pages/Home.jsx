@@ -145,7 +145,7 @@ const Home = () => {
                 variant="contained"
                 onClick={() => addField(field.type)}
                 style={{backgroundColor:"#1B56FD"}}
-                sx={{ textTransform: "none", fontWeight: 500, 
+                sx={{ textTransform: "none", fontWeight: 500, mr:2.2,
                   '&:hover': {
                     background: "linear-gradient(to right, #005be6,rgb(34, 0, 227))",
                   },
@@ -161,8 +161,8 @@ const Home = () => {
 
       {fields.map((field, index) => (
         <motion.div key={index} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.1 }}>
-          <Card sx={{ mt: 3, p: 3, boxShadow: 4, borderRadius: 2 }}>
-            <CardContent>
+          <Card sx={{ mt: 3, p: 3, boxShadow: 4}}>
+            <CardContent> 
               <Chip label={field.type} color="primary" sx={{ mb: 1 }} />
               <TextField
                 required
@@ -171,8 +171,6 @@ const Home = () => {
                 value={field.label}
                 onChange={(e) => updateField(index, "label", e.target.value)}
                 sx={{ mb: 2 }}
-                error={!field.label}
-                helperText={!field.label ? "Field Label is required" : ""}
               />
               <TextField
                 required
@@ -181,8 +179,6 @@ const Home = () => {
                 value={field.name}
                 onChange={(e) => updateField(index, "name", e.target.value)}
                 sx={{ mb: 2 }}
-                error={!field.name}
-                 helperText={!field.name ? "Field Name is required" : ""}
               />
               <FormControlLabel
                 control={

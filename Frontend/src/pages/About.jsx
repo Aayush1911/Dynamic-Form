@@ -55,7 +55,7 @@ const About = () => {
       </motion.div>
 
       {/* Feature and Technology Section */}
-      <Grid container spacing={4} sx={{ mt: 0.2 }}>
+      <Grid container spacing={2} sx={{ mt:0.2}}>
         {/* Key Features */}
         <Grid item xs={12} md={6}>
           <motion.div
@@ -66,6 +66,7 @@ const About = () => {
             <Card
               sx={{
                 p: 1.5,
+                mx:4,
                 borderRadius: "12px",
                 boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
                 transition: "0.3s",
@@ -107,6 +108,7 @@ const About = () => {
             <Card
               sx={{
                 p: 1.5,
+                mx:4,
                 height: "100%",
                 borderRadius: "12px",
                 boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
@@ -147,6 +149,7 @@ const About = () => {
           <Card
             sx={{
               p: 4,
+              mx:4,
               borderRadius: "12px",
               boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
               transition: "0.3s",
