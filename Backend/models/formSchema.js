@@ -6,7 +6,12 @@ const FormSchema = new mongoose.Schema({
   fields: { type: Array, required: true }, // Array of field definitions
   createdAt: { type: Date, default: Date.now },
   shareLink: { type: String, unique: true, default: () => nanoid(10) }, // Generate random ID,
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "user", required: true } // Link to User
+  allowedUsers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // Reference the User model
+    },
+  ],
 }, { timestamps: true 
 });
 FormSchema.index({ schemaName: 1, userId: 1 }, { unique: true });

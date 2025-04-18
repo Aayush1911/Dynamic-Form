@@ -8,12 +8,17 @@ dotenv.config({ path: './.env' });
 
 const signupcontroller = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password ,role} = req.body;
 
-        if (!name || !email || !password) {
+        if (!name || !email || !password || !role) {
             return res.status(400).json({ error: 'All fields are required' });
         }
-
+        if (role === 'admin') {
+            let namestartswith=process.env.ADMIN_NAME;
+            if (!name.toLowerCase().startsWith(namestartswith)) {
+                return res.status(400).json({ error: 'You are not eligible for registering as admin' });
+            }
+        }
         let user = await User.findOne({ email });
         if (user) {
             return res.status(400).json({ error: 'User already exists' });
@@ -21,7 +26,7 @@ const signupcontroller = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        const newUser = new User({ name, email, password: hashedPassword });
+        const newUser = new User({ name, email, password: hashedPassword ,role: req.body.role || "user" });
         await newUser.save();
 
         res.status(201).json({ message: 'Signup successful' });
@@ -47,12 +52,14 @@ const logincontroller = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { userId: user.id },
+            { userId: user.id ,role:user.role,name:user.name},
             process.env.AUTH_TOKEN,
             { expiresIn: '5h' } // Token expires in 1 hour
         );
 
-        res.json({ token });
+        res.json({ token,user:{
+            role:user.role
+        } });
 
     } catch (err) {
         console.error(err);
@@ -68,4 +75,13 @@ const getloggedinuserforms=async(req,res)=>{
             res.status(500).json({ error: "Server Error" });
         }
 }
-module.exports = { signupcontroller, logincontroller,getloggedinuserforms };
+const getallusers=async(req,res)=>{
+    try{
+        const users = await User.find({ role: { $ne: 'admin' } }, '_id name email');
+        res.json(users)
+    }catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Server Error' });
+    }
+}
+module.exports = { signupcontroller, logincontroller,getloggedinuserforms ,getallusers};

@@ -1,10 +1,11 @@
 const router=require('express').Router();
 const authcontroller=require('../controller/authcontroller');
 const fetchUser = require("../middleware/fetchuser"); 
-
 router.post('/signup',authcontroller.signupcontroller)
 router.post('/login',authcontroller.logincontroller)
 router.post('/myforms',fetchUser,authcontroller.getloggedinuserforms)
+router.get('/users',authcontroller.getallusers)
+
 const express = require("express");
 const Form = require("../models/formSchema"); 
 

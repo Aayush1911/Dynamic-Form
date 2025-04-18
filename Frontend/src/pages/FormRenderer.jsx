@@ -1,6 +1,6 @@
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   Container,
   TextField,
@@ -17,29 +17,29 @@ import {
   Alert,
   Typography,
   Box,
-  Paper
+  Paper,
 } from "@mui/material";
 import { motion } from "framer-motion";
 
 function FormRenderer() {
-  const { shareLink } = useParams();
+  const { id } = useParams();
   const [form, setForm] = useState(null);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState('');
+  const [success, setSuccess] = useState("");
   const [responses, setResponses] = useState([]);
+  const [formname, setFormname] = useState("");
 
   useEffect(() => {
     const fetchForm = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/forms/fill/${shareLink}`, {
-          headers: {
-            "Content-Type": "application/json",
-            "auth-token": localStorage.getItem('token')
-          }
-        });
+        const response = await axios.get(
+          `http://localhost:8000/api/forms/get-schema/${id}`
+        );
         setForm(response.data);
+        setFormname(response.data.schemaName);
+        console.log(formname);
       } catch (err) {
         console.error("Error fetching form:", err);
         setError("Form not found or invalid link.");
@@ -49,7 +49,7 @@ function FormRenderer() {
     };
 
     fetchForm();
-  }, [shareLink]);
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -59,7 +59,7 @@ function FormRenderer() {
           ...prev,
           [name]: checked
             ? [...(prev[name] || []), value]
-            : (prev[name]?.filter((item) => item !== value) || []),
+            : prev[name]?.filter((item) => item !== value) || [],
         };
       }
       return { ...prev, [name]: value };
@@ -68,8 +68,8 @@ function FormRenderer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const response = await axios.post(
@@ -94,25 +94,48 @@ function FormRenderer() {
   };
 
   if (loading) return <Typography>Loading form...</Typography>;
-  if (!form) return <Typography>Form not available or invalid link.</Typography>;
+  if (!form) return <Typography>Form not available</Typography>;
 
   return (
-    <Container maxWidth="md" sx={{ mt: 5 ,borderRadius: "12px",
-    }}>
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+    <>
+    <Container maxWidth="lg" sx={{ mt: 5, borderRadius: "12px" }}>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
-            {form?.schemaName || "Untitled Form"}
-          </Typography>
+        <Typography
+               variant="h4"
+               align="center"
+               gutterBottom
+               sx={{
+                 fontWeight: 700,
+                 color: "#2c3e50",
+                 letterSpacing: "1px",
+                 mt: 1.5,
+               }}
+             >
+              Add Data in <span style={{textTransform:"capitalize"}}>{form.schemaName} Form </span> 
+             </Typography>
 
-          {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
+            </Alert>
+          )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
           <form onSubmit={handleSubmit}>
             {form?.fields?.length ? (
               form.fields.map((field, index) => (
                 <Box key={index} sx={{ mb: 3 }}>
-                  {(field.type === "text" || field.type === "email" || field.type === "number") && (
+                  {(field.type === "text" ||
+                    field.type === "email" ||
+                    field.type === "number") && (
                     <TextField
                       fullWidth
                       label={field.label}
@@ -133,7 +156,9 @@ function FormRenderer() {
                             <Checkbox
                               name={field.name}
                               value={option}
-                              checked={formData[field.name]?.includes(option) || false}
+                              checked={
+                                formData[field.name]?.includes(option) || false
+                              }
                               onChange={handleChange}
                             />
                           }
@@ -196,7 +221,9 @@ function FormRenderer() {
                         onChange={handleChange}
                       >
                         {field.options?.map((option, i) => (
-                          <MenuItem key={i} value={option}>{option}</MenuItem>
+                          <MenuItem key={i} value={option}>
+                            {option}
+                          </MenuItem>
                         ))}
                       </Select>
                     </FormControl>
@@ -217,9 +244,33 @@ function FormRenderer() {
               Submit
             </Button>
           </form>
+         
         </Paper>
       </motion.div>
+      <Link
+            to={`/showdata/${formname}/${id}`}
+            style={{ textDecoration: "none"}}
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              style={{width:"8vw",height:"6vh"}}
+              sx={{
+                mb: 1,
+                mt:2,
+                fontWeight: 500,
+                letterSpacing: 0.5,
+                "&:hover": {
+                  background: "linear-gradient(to right, #005be6, #00b2e3)",
+                },
+              }}
+            >
+              Show data
+            </Button>
+      </Link>
     </Container>
+    </>
   );
 }
 

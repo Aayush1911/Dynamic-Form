@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState ,useContext} from "react";
 import {
   TextField,
   Button,
@@ -11,12 +11,14 @@ import {
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { jwtDecode } from "jwt-decode";
+import { FormContext } from "../context/FormContext";
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
+  const { fetchForms } = useContext(FormContext);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,7 +32,12 @@ const Login = () => {
     try {
       const response = await axios.post("http://localhost:8000/auth/login", formData);
       localStorage.setItem("token", response.data.token);
+      // localStorage.setItem("role",response.data.user.role);
+      const token = response.data.token;
+      const decoded = jwtDecode(token); 
+      console.log(decoded.role);
       setSuccess("Login successful!");
+      fetchForms()
       setTimeout(() => navigate("/"), 1500);
     } catch (err) {
       setError(err.response?.data?.error || "Login failed");
@@ -48,7 +55,7 @@ const Login = () => {
         px: 2,
       }}
     >
-      <Container maxWidth="sm">
+      <Container maxWidth="md">
         <motion.div
           initial={{ opacity: 0, y: -40 }}
           animate={{ opacity: 1, y: 0 }}

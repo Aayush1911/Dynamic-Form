@@ -12,15 +12,12 @@ const fetchUser = (req, res, next) => {
 
     try {
         if (!process.env.AUTH_TOKEN) {
-            // console.error("Missing AUTH_TOKEN in .env file");
             return res.status(500).json({ error: "Server configuration error" });
         }
-
-        // Corrected: Assign the decoded token to `decodedData`
         const decodedData = jwt.verify(token, process.env.AUTH_TOKEN);
         // console.log(" Verified User Data:", decodedData);
 
-        req.user = { id: decodedData.userId }; //  Use the correct variable name
+        req.user = { id: decodedData.userId,role:decodedData.role }; 
         next();
     } catch (error) {
         console.error(" Token Verification Failed:", error.message);

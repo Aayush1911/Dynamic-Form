@@ -17,10 +17,14 @@ import {
   MenuItem,
   Chip,
 } from "@mui/material";
+import { jwtDecode } from "jwt-decode";
 
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import UserDashboard from "../components/UserDashboard";
+import { FormContext } from "../context/FormContext";
+import { AdminContext } from "../context/AdminContext";
 
 const fieldTypes = [
   { type: "text", label: "Text Field" },
@@ -38,7 +42,21 @@ const Home = () => {
   const [fields, setFields] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  // const checkRole=localStorage.getItem("role")
+  const { fetchAdminForms } = useContext(AdminContext);
 
+  let role = "user"; // default to 'user' if no token
+  const token = localStorage.getItem("token");
+  
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      role = decoded.role || "user";
+    } catch (err) {
+      console.error("Invalid token:", err);
+    }
+  }
+   
   useEffect(() => {
     const isAuthenticated = !!localStorage.getItem("token");
     if (!isAuthenticated) navigate("/login");
@@ -99,12 +117,10 @@ const Home = () => {
         }
       );
 
-      const shareLink = response.data?.shareLink;
-      if (shareLink) {
-        setSuccess(`Form saved successfully! Share this link: ${window.location.origin}/form/fill/${shareLink}`);
-      } else {
-        setError("Failed to generate share link.");
-      }
+      fetchAdminForms();
+
+        setSuccess(`Form saved successfully!`);
+    
 
       setFormName("");
       setFields([]);
@@ -117,16 +133,28 @@ const Home = () => {
 
   return (
     <div >
+      {role !== "admin" ? <UserDashboard/>:
     <Container
       maxWidth="xl"
       sx={{
-        backgroundColor: "#F4F8D3",
-        minHeight: "90vh",
+        minHeight: "100vh",
         p: 5,
         borderRadius: "12px",
         boxShadow: "0 12px 24px rgba(0, 0, 0, 0.1)",
       }}
     >
+      <Typography
+                variant="h4"
+                sx={{
+                  fontFamily: "cursive",
+                  mb: 2,
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  letterSpacing: 1,
+                }}
+              >
+                Dynamic Form Builder
+              </Typography>
       <TextField
         label="Form Name"
         fullWidth
@@ -258,6 +286,7 @@ const Home = () => {
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
     </Container>
+}
     </div>
   );
 };

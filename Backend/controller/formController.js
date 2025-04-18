@@ -5,6 +5,8 @@ const formSchema = require("../models/formSchema");
 const { nanoid } = require("nanoid");
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
+const user = require("../models/user");
 
 //  Save Form Schema
 const saveFormSchema = async (req, res) => {
@@ -15,23 +17,10 @@ const saveFormSchema = async (req, res) => {
       return res.status(400).json({ error: "Schema name and fields are required" });
     }
 
-    // Ensure req.user is defined
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ error: "Unauthorized. Please log in." });
-    }
-
-    // ✅ Check if a form with the same name already exists
-    let existingSchema = await FormSchema.findOne({ schemaName, userId: req.user.id });
-
-    if (existingSchema) {
-      return res.status(400).json({ error: "Schema name already exists. Please choose a different name." });
-    }
-
     // ✅ Create a new form schema
     const newSchema = new FormSchema({
       schemaName,
-      fields,
-      userId: req.user.id,
+      fields
     });
 
     const savedForm = await newSchema.save();
@@ -53,8 +42,8 @@ const saveFormSchema = async (req, res) => {
 //  Get Form Schema
 const getFormSchema = async (req, res) => {
   try {
-    const { formId  } = req.params;
-    const schema = await FormSchema.findOne({ formId  });
+    const { id  } = req.params;
+    const schema = await FormSchema.findById(id);
     if (!schema) {
       return res.status(404).json({ error: "Schema not found" });
     }
@@ -170,6 +159,7 @@ const deleteSchemaController=async(req,res)=>{
 
 const getformname=async(req,res)=>{
   try{
+    const {id}=req.params;
     const allformnames=await formSchema.find({},'schemaName shareLink')
     res.json(allformnames)
   }catch(error){
@@ -177,4 +167,86 @@ const getformname=async(req,res)=>{
   }
 }
 
-module.exports = { saveFormSchema, getFormSchema, submitForm, getFormResponses,editcontroller,deletecontroller ,getformname,getFormLink,deleteSchemaController};
+const getadminforms=async(req,res)=>{
+  try {
+    const forms = await formSchema.find();
+    res.json({ forms });
+  } catch (error) {
+    console.error("Error fetching forms:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+
+const giveAccessToForm = async (req, res) => {
+  try {
+    const { formId, userIds } = req.body;
+
+    if (!formId || !Array.isArray(userIds)) {
+      return res.status(400).json({ message: "Invalid data" });
+    }
+
+    const form = await FormSchema.findById(formId);
+    if (!form) return res.status(404).json({ message: "Form not found" });
+
+    const objectIds = userIds.map(id => new mongoose.Types.ObjectId(id));
+
+    // Avoid duplicates
+    form.allowedUsers = [...new Set([...form.allowedUsers.map(id => id.toString()), ...objectIds.map(id => id.toString())])].map(id => new mongoose.Types.ObjectId(id));
+
+    await form.save();
+
+    res.status(200).json({ message: "Access granted", allowedUsers: form.allowedUsers });
+  } catch (error) {
+    console.error("Error giving access:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const removeAccessFromForm = async (req, res) => {
+  try {
+    const { formId, userId } = req.body;
+
+    if (!formId || !userId) {
+      return res.status(400).json({ message: "Invalid data" });
+    }
+
+    const form = await FormSchema.findById(formId);
+    if (!form) return res.status(404).json({ message: "Form not found" });
+
+    // Check if user is in allowedUsers list
+    const userIndex = form.allowedUsers.findIndex(id => id.toString() === userId);
+    if (userIndex === -1) {
+      return res.status(400).json({ message: "User does not have access to this form" });
+    }
+
+    // Remove the user from the allowedUsers array
+    form.allowedUsers.splice(userIndex, 1);
+
+    await form.save();
+
+    res.status(200).json({ message: "Access removed", allowedUsers: form.allowedUsers });
+  } catch (error) {
+    console.error("Error removing access:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getAccesslist = async (req, res) => {
+  try {
+    const { formId } = req.params;
+
+    const form = await formSchema.findById(formId).populate("allowedUsers", "name email");
+
+    if (!form) {
+      return res.status(404).json({ message: "Form not found" });
+    }
+
+    res.status(200).json(form.allowedUsers);
+  } catch (error) {
+    console.error("Error fetching access list:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+module.exports = { saveFormSchema, getFormSchema, submitForm, getFormResponses,editcontroller,deletecontroller ,getformname,getFormLink,deleteSchemaController,getadminforms,giveAccessToForm,getAccesslist,removeAccessFromForm};
