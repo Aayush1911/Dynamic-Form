@@ -2,10 +2,6 @@
 
 This is a full-stack web application where admins can create dynamic forms, assign access to specific users, and manage form submissions securely. Users can fill and edit forms based on their role and access permissions.
 
-## 🔗 Live Demo
-> [Add your deployment link here, e.g. Render, Vercel, or Netlify]
-
----
 
 ## 📌 Features
 
